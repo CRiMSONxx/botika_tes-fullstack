@@ -1,6 +1,8 @@
 <script>
     import { onMount } from 'svelte';
     let karyawans = [];
+    let divisiList = [];
+    let pekerjaanList = [];
     let newKaryawan = {
       nama: '',
       email: '',
@@ -29,6 +31,50 @@
         errorMessage = 'Failed to load karyawan data';
       }
     });
+  
+  // Fetch divisi
+  const fetchDivisi = async () => {
+      loading = true;
+      error = null;
+
+      try {
+          const response = await fetch('http://localhost:8000/api/divisi', {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+              },
+          });
+
+          if (!response.ok) {
+              throw new Error('Gagal memuat data');
+          }
+
+          divisiList = await response.json();
+          console.log(divisiList);
+      } catch (err) {
+          error = err.message;
+          window.location.href = '/';
+      } finally {
+          loading = false;
+      }
+  };
+    const fetchPekerjaan = async () => {
+      loading = true;
+      error = null;
+  
+      try {
+        const response = await axios.get('http://localhost:8000/api/pekerjaan', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        pekerjaanList = response.data;
+        console.log(pekerjaanList);
+      } catch (err) {
+        error = err.response?.data?.message || err.message;
+      } finally {
+        loading = false;
+      }
+    };
   
     // Create or Update karyawan
     const saveKaryawan = async () => {
@@ -100,8 +146,17 @@
     <input type="email" placeholder="Email" bind:value={newKaryawan.email} required />
     <input type="text" placeholder="No Telepon" bind:value={newKaryawan.no_telepon} required />
     <input type="date" placeholder="Tanggal Lahir" bind:value={newKaryawan.tanggal_lahir} required />
-    <input type="number" placeholder="Divisi ID" bind:value={newKaryawan.divisi_id} required />
+    <!-- <input type="number" placeholder="Divisi ID" bind:value={newKaryawan.divisi_id} required /> -->
     <input type="number" placeholder="Pekerjaan ID" bind:value={newKaryawan.pekerjaan_id} required />
+    
+    <div>
+      <label for="divisi">Filter berdasarkan divisi:</label>
+      <select id="divisi" bind:value={newKaryawan.divisi_id} required>
+        {#each divisiList as divisi}
+          <option value={divisi.id}>{divisi.nama_divisi}</option>
+        {/each}
+      </select>
+    </div>
     <button type="submit">{editingKaryawan ? 'Update' : 'Create'} Karyawan</button>
   </form>
   

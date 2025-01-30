@@ -3,7 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Dashboard;
 
-Route::view('/', 'welcome');
+Route::get('/', function () {
+    return response()->json(['laravel' => app()->version()]);
+});
+
 
 // Route::view('dashboard', 'dashboard')
 //     ->middleware(['auth', 'verified'])

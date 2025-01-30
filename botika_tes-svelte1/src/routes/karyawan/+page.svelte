@@ -3,7 +3,9 @@
     import axios from 'axios';
   
     let karyawan = [];
-    let formData = { id: null, nama_karyawan: '', no_telepon: '', tanggal_lahir: '', divisi_id: '', pekerjaan_id: '' };
+    let divisiList = [];
+    let pekerjaanList = [];
+    let formData = { id: null, nama: '', email: '', no_telepon: '', tanggal_lahir: '', divisi_id: '', pekerjaan_id: '' };
     let loading = true;
     let error = null;
     let showForm = false;
@@ -23,6 +25,50 @@
           },
         });
         karyawan = response.data;
+      } catch (err) {
+        error = err.response?.data?.message || err.message;
+      } finally {
+        loading = false;
+      }
+    };
+    
+  // Fetch divisi
+  const fetchDivisi = async () => {
+      loading = true;
+      error = null;
+
+      try {
+          const response = await fetch('http://localhost:8000/api/divisi', {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+              },
+          });
+
+          if (!response.ok) {
+              throw new Error('Gagal memuat data');
+          }
+
+          divisiList = await response.json();
+          console.log(divisiList);
+      } catch (err) {
+          error = err.message;
+          window.location.href = '/';
+      } finally {
+          loading = false;
+      }
+  };
+    const fetchPekerjaan = async () => {
+      loading = true;
+      error = null;
+  
+      try {
+        const response = await axios.get('http://localhost:8000/api/pekerjaan', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        pekerjaanList = response.data;
+        console.log(pekerjaanList);
       } catch (err) {
         error = err.response?.data?.message || err.message;
       } finally {
@@ -87,6 +133,8 @@
     // Initial fetch
     onMount(() => {
       fetchKaryawan();
+      fetchDivisi();
+      fetchPekerjaan();
       console.log(karyawan);
     });
   </script>
@@ -137,19 +185,35 @@
           <h2>{isEditing ? 'Edit Karyawan' : 'Tambah Karyawan'}</h2>
           <form on:submit|preventDefault={saveKaryawan}>
             <div>
-              <label for="nama_karyawan">Nama Karyawan</label>
+              <label for="nama">Nama Karyawan</label>
               <input
                 type="text"
-                id="nama_karyawan"
-                bind:value={formData.nama_karyawan}
+                id="nama"
+                bind:value={formData.nama}
                 required
               />
             </div>
                 <input type="email" placeholder="Email" bind:value={formData.email} required />
                 <input type="text" placeholder="No Telepon" bind:value={formData.no_telepon} required />
                 <input type="date" placeholder="Tanggal Lahir" bind:value={formData.tanggal_lahir} required />
-                <input type="number" placeholder="Divisi ID" bind:value={formData.divisi_id} required />
-                <input type="number" placeholder="Pekerjaan ID" bind:value={formData.pekerjaan_id} required />
+                <!-- <input type="number" placeholder="Divisi ID" bind:value={formData.divisi_id} required />
+                <input type="number" placeholder="Pekerjaan ID" bind:value={formData.pekerjaan_id} required /> -->
+              <div>
+                <label for="divisi">Filter berdasarkan divisi:</label>
+                <select id="divisi" bind:value={formData.divisi_id} required>
+                  {#each divisiList as divisi}
+                    <option value={divisi.id}>{divisi.nama_divisi}</option>
+                  {/each}
+                </select>
+              </div>
+              <div>
+                <label for="pekerjaan">Filter berdasarkan pekerjaan:</label>
+                <select id="pekerjaan" bind:value={formData.pekerjaan_id} required>
+                  {#each pekerjaanList as pekerjaan}
+                    <option value={pekerjaan.id}>{pekerjaan.nama_pekerjaan}</option>
+                  {/each}
+                </select>
+              </div>
             <div>
               <button type="submit">{isEditing ? 'Simpan Perubahan' : 'Tambah'}</button>
               <button type="button" on:click={resetForm}>Batal</button>
